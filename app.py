@@ -64,7 +64,7 @@ class PositivityAccount(Resource):
        
         # Looks for id in the Users dict, if not found abort the program.
         
-        res = collection.find_one({"acc":accName},{"tweets"})
+        res = collection.find_one({"acc":accName})
         if not res:
             abort(404,message=" Account  not found. ERROR 404")
        
