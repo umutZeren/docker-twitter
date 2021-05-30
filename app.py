@@ -142,15 +142,11 @@ class PositivityAccount(Resource):
             return Users[id]
 """
 #Routed into resource
-@app.route('/login')
-def login():
-    username = request.args.get('username', None)
-    pasword  = request.args.get('password', None)
-    print("usernaem",username, "pass",pasword)
-    verify_password(username,pasword)
+
 @auth.verify_password
 def verify_password(username,pasword):
-    
+    username = request.args.get('username', None)
+    pasword  = request.args.get('password', None)
     check_userName=os.environ.get("super_username")
     check_userPass=os.environ.get("super_password")
     if username==check_userName:
