@@ -65,6 +65,7 @@ class PositivityAccount(Resource):
         # Looks for id in the Users dict, if not found abort the program.
         
         res = collection.find_one({"acc":accName})
+        print("res is ",res)
         if not res:
             abort(404,message=" Account  not found. ERROR 404")
        
@@ -141,10 +142,13 @@ class PositivityAccount(Resource):
 """
 #Routed into resource
 @app.route('/login')
+def login():
+    username = request.args.get('username', None)
+    pasword  = request.args.get('password', None)
+    verify_password(username,pasword)
 @auth.verify_password
 def verify_password(username,pasword):
-    #username = request.args.get('username', None)
-    #pasword  = request.args.get('password', None)
+    
     check_userName=os.environ.get("super_username")
     check_userPass=os.environ.get("super_password")
     if username==check_userName:
