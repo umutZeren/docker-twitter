@@ -1,7 +1,7 @@
 FROM zenika/alpine-chrome:89-with-node-14
 USER root
-RUN mkdir /code
-WORKDIR /code
+RUN mkdir /app
+WORKDIR /app
 #COPY ./code /code
 ENV PYTHONUNBUFFERED 1
 
@@ -47,4 +47,4 @@ RUN npm i mongodb
 
 COPY . .
 #CMD [ "python3", "-m" , "flask", "run"]
-CMD gunicorn code:app --bind 0.0.0.0:$PORT --reload
+CMD gunicorn app:app --bind 0.0.0.0:$PORT --reload
