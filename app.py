@@ -53,7 +53,7 @@ collection=mongo_db.sentiment
 #The main building block provided by Flask-RESTful are resources.
 # Resources are built on top of Flask pluggable views, 
 # giving you easy access to multiple HTTP methods just by defining methods on your resource.
-records=[]
+
 
 class PositivityAccount(Resource):
 
@@ -69,7 +69,8 @@ class PositivityAccount(Resource):
         if not res:
             abort(404,message=" Account  not found. ERROR 404")
        
-        return  (res["acc"],res["score"])
+        get_res={"acc":res["acc"],"score":res["score"]}
+        return  (get_res,200)
    
 
     # POST METHOD, uses http id for looking at the userid.
@@ -145,6 +146,7 @@ class PositivityAccount(Resource):
 def login():
     username = request.args.get('username', None)
     pasword  = request.args.get('password', None)
+    print("usernaem",username, "pass",pasword)
     verify_password(username,pasword)
 @auth.verify_password
 def verify_password(username,pasword):
@@ -157,9 +159,11 @@ def verify_password(username,pasword):
 api.add_resource(PositivityAccount , "/PositivityAccount/<accName>")
 @app.route('/')
 def home():
+    records=[]
     res = collection.find({})
-    if res:
+    if res and len(records)==0 :
         print("in res")
+        
         for  i in res:
             print("starting", i)
             records.append(
