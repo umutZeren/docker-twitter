@@ -6,7 +6,7 @@ const { MongoClient } = require("mongodb");
 const args1= process.argv[2];
 
 const twitUrl=`https://twitter.com/${args1}`;
-const pass=process.env.ENV_VARIABLE("password");
+const pass=process.env.password;
 var url=`mongodb+srv://NodeJs:${pass}@sentiment.6g24c.mongodb.net/myFirstDatabase?retryWrites=true&w=majority`
 
 // Replace the uri string with your MongoDB deployment's connection string.
