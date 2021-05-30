@@ -5,20 +5,17 @@ from flask import Flask, jsonify
 from flask_restful import Resource, Api, reqparse, abort
 import pymongo
 from dotenv import load_dotenv
+import requests
 from textblob import TextBlob
 import os
 import time
 from flask_httpauth import HTTPBasicAuth
 from werkzeug.security import  check_password_hash
+from flask import request
+
 #aut
 auth = HTTPBasicAuth()
-@auth.verify_password
-def verify_password(username, password):
-    check_userName=os.environ.get("super_username")
-    check_userPass=os.environ.get("super_password")
-    if username==check_userName:
-        return check_password_hash(check_userPass)
-    return False
+
 
 
 def getSubjectivity(text):
@@ -145,7 +142,16 @@ class PositivityAccount(Resource):
             return Users[id]
 """
 #Routed into resource
-
+@app.route('/login')
+@auth.verify_password
+def verify_password():
+    username = request.args.get('username', None)
+    pasword  = request.args.get('password', None)
+    check_userName=os.environ.get("super_username")
+    check_userPass=os.environ.get("super_password")
+    if username==check_userName:
+        return check_password_hash(check_userPass,pasword)
+    return False
 api.add_resource(PositivityAccount , "/PositivityAccount/<accName>")
 @app.route('/')
 def home():
