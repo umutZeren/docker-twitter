@@ -1,11 +1,9 @@
 #pip dependencies are "pip install flask" and "pip install flask-restful"
 
-import re
 from flask import Flask, jsonify
 from flask_restful import Resource, Api, reqparse, abort
 import pymongo
 from dotenv import load_dotenv
-import requests
 from textblob import TextBlob
 import os
 import time
