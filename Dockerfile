@@ -23,6 +23,8 @@ RUN pip3 install pymongo==3.11.4
 RUN pip3 install python-dotenv==0.17.1
 RUN pip3 install textblob==0.15.3
 RUN pip3 install dnspython
+RUN pip install Flask-HTTPAuth
+RUN pip install Werkzeug
 #
 RUN apk add --no-cache \
 	  nss \

@@ -1,5 +1,6 @@
 #pip dependencies are "pip install flask" and "pip install flask-restful"
 
+import re
 from flask import Flask, jsonify
 from flask_restful import Resource, Api, reqparse, abort
 import pymongo
@@ -7,6 +8,17 @@ from dotenv import load_dotenv
 from textblob import TextBlob
 import os
 import time
+from flask_httpauth import HTTPBasicAuth
+from werkzeug.security import  check_password_hash
+#aut
+auth = HTTPBasicAuth()
+@auth.verify_password
+def verify_password(username, password):
+    check_userName=os.environ.get("super_username")
+    check_userPass=os.environ.get("super_password")
+    if username==check_userName:
+        return check_password_hash(check_userPass)
+    return False
 
 
 def getSubjectivity(text):
@@ -33,80 +45,79 @@ load_dotenv()
 application= app = Flask(__name__)
 api = Api(app)
 
-#DATABASE_URL=f'mongodb+srv://NodeJs:{os.environ.get("password")}@sentiment.6g24c.mongodb.net/myFirstDatabase?retryWrites=true&w=majority' # get connection url from environment
-DATABASE_URL=f'mongodb+srv://NodeJs:NodeJs@sentiment.6g24c.mongodb.net/myFirstDatabase?retryWrites=true&w=majority' # get connection url from environment
+DATABASE_URL=f'mongodb+srv://NodeJs:{os.environ.get("password")}@sentiment.6g24c.mongodb.net/myFirstDatabase?retryWrites=true&w=majority' # get connection url from environment
+#DATABASE_URL=f'mongodb+srv://NodeJs:NodeJs@sentiment.6g24c.mongodb.net/myFirstDatabase?retryWrites=true&w=majority' # get connection url from environment
         
 client=pymongo.MongoClient(DATABASE_URL) # establish connection with database
 mongo_db=client.myFirstDatabase
 collection=mongo_db.sentiment
 
-          
-
-#Flask argument parser for taking json input. 
-users_put_args = reqparse.RequestParser()
-
-# Parsed name and surnamed is required for the insertion.
-users_put_args.add_argument("name",type=str,help="Name of the user",required=True)
-users_put_args.add_argument("surname",type=str,help="SURName of the user",required=True)
-users_put_args.add_argument("email",type=str,help="Email of the user")
 
 # User dictionary. Stores index:key pairs for userid and sub-info.
 
 #The main building block provided by Flask-RESTful are resources.
 # Resources are built on top of Flask pluggable views, 
 # giving you easy access to multiple HTTP methods just by defining methods on your resource.
+records=[]
+
 class PositivityAccount(Resource):
 
     # GET METHOD, uses http id for looking at the userid.
     # READ's Users dict for get method.
     def get(self,accName):
-        print(accName)
+       
+       
         # Looks for id in the Users dict, if not found abort the program.
+        
         res = collection.find_one({"acc":accName},{"tweets"})
-        if not res: 
-            #abort(404,message=" Account  not found. ERROR 404")
-            # procces _id 
+        if not res:
+            abort(404,message=" Account  not found. ERROR 404")
+       
+        return  (res["acc"],res["score"])
+   
+
+    # POST METHOD, uses http id for looking at the userid.
+    # CREATE's Users in the dict with userid.
+    def post(self,accName):
+    # Looks if user exists, aborts if found.
+        res = collection.find_one({"acc":accName},{"tweets"})
+        if res: abort(409,message=" Account  already exist.Use get request for more information Error:409")
+        else:
             os.system("node Retweet.js "+accName)
             while(not res):
                 # for not to send request to mongoDb constantly
                 time.sleep(1)
                 res = collection.find_one({"acc":accName},{"tweets"})
-      
-        # if there aint no such an url eror
-        #if id not in Users:
-        #    abort(404,message=" User not found. ERROR 404")
         
-        #return is a Python dictionary which is same as JSON.
+        score=0
+        pos=0
+        neg=0
+        neutral=0
+        for i in res["tweets"]:
+            polarity=getPolarity(str(i))
+            if polarity>0: pos+=1
+            elif polarity<0: neg+=1
+            else: neutral+=1
+        diff=float((pos-neg))
+        l=len(res["tweets"])
+        score=  diff/l*100
+        result={"acc":accName,"score":"%"+str(score),"pos":pos,"neg":neg,"neutral":neutral}
+        collection.update_one({"acc":accName},{"$set":result})
         
-        return  (res["tweets"])
-"""
-    # POST METHOD, uses http id for looking at the userid.
-    # CREATE's Users in the dict with userid.
-    def post(self,id):
-        # Looks if user exists, aborts if found.
-        if id  in Users:
-            abort(409,message="User already exists. ERROR 409")
-        else:
-            args=users_put_args.parse_args()
-            Users[id]=args
-
-            #return is a Python dictionary which is same as JSON.
-            return Users[id]
-
+        return jsonify(result)
+        
     #DELETE METHOD, uses http id for looking at the userid.
     #DELETE'S Users from dict according to their id.
-    def delete(self,id):
+    @auth.login_required
+    def delete(self,accName):
 
         # Looks for id in the Users dict, if not found abort the program.
-        if id not in Users:
-            abort(404,message="User not found, delete request cancelled. ERROR 404")
-        else:
-
-            # Deletes user.
-            del Users[id]
+        res=collection.delete_one({"acc":accName})
+        if not res: abort(404,message="Account not found, delete request cancelled. ERROR 404")
 
             # Only signal code is needed for confirmation since indexed dictionary is deleted.
-            return "",200
+        return "",200
+    """
     #PUT METHOD, uses http id for looking at the userid.
     #REPLACE'S  current user with diffrent user preserving the userid.
     def put(self,id):
@@ -132,16 +143,23 @@ class PositivityAccount(Resource):
             args=users_put_args.parse_args()
             Users[id]=args
             return Users[id]
-
 """
 #Routed into resource
-api.add_resource(PositivityAccount , "/PositivityAccount/<accName>")
 
+api.add_resource(PositivityAccount , "/PositivityAccount/<accName>")
 @app.route('/')
 def home():
-    return jsonify("Welcome")
+    res = collection.find({})
+    if res:
+        print("in res")
+        for  i in res:
+            print("starting", i)
+            records.append(
+            {
+            "acc":i["acc"],
+            "score":i["score"]
+            })
+    return jsonify(records)
     
     
     
-
-
