@@ -47,4 +47,5 @@ RUN npm i mongodb
 
 COPY . .
 #CMD [ "python3", "-m" , "flask", "run"]
-CMD gunicorn app:app --bind 0.0.0.0:$PORT --reload
+#CMD gunicorn app:app --bind 0.0.0.0:$PORT --reload
+CMD [ "python3", "wsgi.py"]
