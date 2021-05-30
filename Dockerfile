@@ -46,4 +46,4 @@ RUN npm i mongodb
 
 
 COPY . .
-CMD [ "python3", "-m" , "flask", "run", "--host=https://docker-tw.herokuapp.com/"]
+CMD [ "python3", "-m" , "flask", "run", "--host=docker-tw.herokuapp.com"]
