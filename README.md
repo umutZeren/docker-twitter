@@ -1,4 +1,5 @@
-# docker-twitter
+# Atakan Mavzer Umut Zeren
+docker-twitter
 Decisions:
 
 We decided to use Docker for our container since our project needs
